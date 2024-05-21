@@ -1,0 +1,39 @@
+﻿#pragma once
+#include <string>
+#include "declare.h"
+#include <map>
+#include "action.h"
+#include <format>
+
+struct state_feature
+{
+	const int _x, _y;
+public:
+	inline std::string get_name() {
+		return std::format("{}-{}", _x, _y);
+	}
+};
+
+class state
+{
+private:
+	state_feature _feature;
+	double _value;//当前状态的价值
+private:
+	std::map<reward, probability> _rewards;
+	map_action_ptr _map_action; //当前状态的动作
+	std::map<action::action::feature, probability> _policy; //当前状态的动作概率(策略)
+public:
+	inline const state_feature& get_feature() { return _feature; }
+	inline double value() { return _value; };
+	inline void set_value(const double& value) { _value = value; };
+	inline probability policy(const action::feature& type) { return _policy[type]; }
+public:
+	double reward_expectations(); //获取当前状态的奖励期望
+	action_ptr sample_action(); //根据策略抽样一个动作
+	reward sample_reword(); //采样一个奖励
+public:
+	state(const state_feature& feature);
+	state(state_feature&& feature);
+};
+

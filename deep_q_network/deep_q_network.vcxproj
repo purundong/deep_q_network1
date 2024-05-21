@@ -111,14 +111,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="delegate.cpp" />
+    <ClCompile Include="state\random_process.cpp" />
+    <ClCompile Include="state\environment.cpp" />
+    <ClCompile Include="state\action.cpp" />
+    <ClCompile Include="state\state.cpp" />
+    <ClCompile Include="state\ui_reword.cpp" />
+    <ClCompile Include="state\ui_state.cpp" />
+    <ClCompile Include="state\ui_state_transfers.cpp" />
     <QtRcc Include="deep_q_network.qrc" />
     <QtUic Include="deep_q_network.ui" />
     <QtMoc Include="deep_q_network.h" />
     <ClCompile Include="deep_q_network.cpp" />
     <ClCompile Include="main.cpp" />
+    <QtUic Include="state\ui_reword.ui" />
+    <QtUic Include="state\ui_state.ui" />
+    <QtUic Include="state\ui_state_transfers.ui" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="delegate.h" />
+    <ClInclude Include="state\random_process.h" />
+    <ClInclude Include="state\environment.h" />
+    <ClInclude Include="state\action.h" />
     <ClInclude Include="libtorch.h" />
+    <ClInclude Include="state\declare.h" />
+    <ClInclude Include="state\state.h" />
+    <ClInclude Include="state\ui_reword.h" />
+    <QtMoc Include="state\ui_state_transfers.h" />
+    <QtMoc Include="state\ui_state.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -1,4 +1,4 @@
-#include "deep_q_network.h"
+﻿#include "deep_q_network.h"
 
 deep_q_network::deep_q_network(QWidget *parent)
     : QWidget(parent)
@@ -7,4 +7,5 @@ deep_q_network::deep_q_network(QWidget *parent)
 }
 
 deep_q_network::~deep_q_network()
-{}
+{
+}

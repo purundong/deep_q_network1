@@ -1,4 +1,6 @@
 <RCC>
-    <qresource prefix="deep_q_network">
+    <qresource prefix="/deep_q_network">
+        <file>arrow.png</file>
+        <file>circle.png</file>
     </qresource>
 </RCC>

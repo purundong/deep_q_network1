@@ -40,10 +40,74 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="state\state.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="state\action.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="state\ui_state.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="state\ui_reword.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="state\ui_state_transfers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="delegate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="state\environment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="state\random_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libtorch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="state\state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="state\declare.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="state\action.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="state\ui_reword.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="delegate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="state\environment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="state\random_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="state\ui_state.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="state\ui_reword.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="state\ui_state_transfers.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="state\ui_state.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="state\ui_state_transfers.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>
