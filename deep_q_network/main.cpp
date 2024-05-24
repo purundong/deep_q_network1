@@ -1,7 +1,7 @@
 ﻿#include "deep_q_network.h"
 #include <QtWidgets/QApplication>
-//#include "libtorch.h"
 #include <iostream>
+#include "libtorch.h"
 
 int main(int argc, char *argv[])
 {
@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	//torch::Tensor tensor2 = torch::eye(3, device); // (B) tensor-cuda
 	//std::cout << tensor1 << std::endl;
 	//std::cout << tensor2 << std::endl;
-	deep_q_network w;
-	w.show();
+	//deep_q_network w;
+	//w.show();
     return a.exec();
 }

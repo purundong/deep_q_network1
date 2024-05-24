@@ -2,7 +2,10 @@
 #include "declare.h"
 #include <vector>
 #include <algorithm>
+#include <format>
 #include "random_process.h"
+#include "ui_reword.h"
+#include "ui_state_transfers.h"
 
 double state::reward_expectations()
 {
@@ -54,4 +57,19 @@ state::state(state_feature&& feature) :
 		{action::feature::fixed, 0.25} }),
 	_value{ 0 }
 {
+}
+
+std::string state::get_name()
+{
+	return _feature.get_name();
+}
+
+std::shared_ptr<QDialog> state::make_set_reword()
+{
+	return std::dynamic_pointer_cast<QDialog>(std::make_shared<ui_reword>(shared_from_this()));
+}
+
+std::shared_ptr<QDialog> state::make_set_state_transfers(map_state_ptr states)
+{
+	return std::dynamic_pointer_cast<QDialog>(std::make_shared<ui_state_transfers>(shared_from_this(), states));
 }

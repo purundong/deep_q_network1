@@ -2,7 +2,7 @@
 
 #include <QDialog>
 #include "ui_ui_reword.h"
-#include "../state.h"
+#include "state.h"
 
 class ui_reword : public QDialog //设置状态的奖励的界面
 {

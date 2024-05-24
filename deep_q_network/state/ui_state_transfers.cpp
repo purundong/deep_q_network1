@@ -9,10 +9,10 @@ ui_state_transfers::ui_state_transfers(state_ptr s_obj, map_state_ptr map_state_
 	setWindowTitle(QString::fromLocal8Bit("%1:的状态转移").arg(QString::fromStdString(_state->get_name())));
 	ui.treeWidget->header()->setSectionResizeMode(QHeaderView::Stretch);
 	QStringList str;
-	for (auto& key : **_map_state)
+	for (auto& key : *_map_state)
 		str << QString::fromStdString(key.first);
 	combobox* box = new combobox(str);
-	auto actions = _state->map_action();
+	auto actions = _state->get_actions();
 	ui.treeWidget->setItemDelegateForColumn(2, box);
 	auto on_text = new text(false);
 	ui.treeWidget->setItemDelegateForColumn(0, on_text);
@@ -26,12 +26,12 @@ ui_state_transfers::ui_state_transfers(state_ptr s_obj, map_state_ptr map_state_
 		root_item->setText(0, QString::number(type));
 		root_item->setText(1, QString::fromLocal8Bit(a->get_name().data()));
 		ui.treeWidget->addTopLevelItem(root_item);
-		auto& transfer = a->state_transfer();
-		for (auto& [name, s] : transfer)
+		auto& transfer = a->get_state_transfer();
+		for (auto& [state_obj, probability_obj] : transfer)
 		{
 			auto item = new QTreeWidgetItem;
-			item->setText(2, QString::fromStdString(name));
-			item->setText(3, QString::number(std::get<1>(s)));
+			item->setText(2, QString::fromStdString(state_obj->get_name()));
+			item->setText(3, QString::number(probability_obj));
 			root_item->addChild(item);
 		}
 	}
@@ -39,22 +39,23 @@ ui_state_transfers::ui_state_transfers(state_ptr s_obj, map_state_ptr map_state_
 
 ui_state_transfers::~ui_state_transfers()
 {
-	auto actions = _state->map_action();
+	;
+	auto actions = _state->get_actions();
 	for (int i = 0; i < ui.treeWidget->topLevelItemCount(); i++)
 	{
 		auto root_item = ui.treeWidget->topLevelItem(i);
-		auto type = action::action_type(root_item->text(0).toInt());
+		auto type = action::feature(root_item->text(0).toInt());
 
 		if (auto a_key = (*actions).find(type); a_key != actions->end()) {
-			auto& transfer = a_key->second->state_transfer();
+			auto& transfer = a_key->second->get_state_transfer();
 			transfer.clear();
 			for (int j = 0; j < root_item->childCount(); j++)
 			{
 				auto item = root_item->child(j);
 				auto name = item->text(2).toStdString();
-				if (auto s_key = (**_map_state).find(name); s_key != (**_map_state).end()) {
+				if (auto s_key = _map_state->find(name); s_key != _map_state->end()) {
 					auto value = item->text(3).toDouble();
-					transfer[name] = std::make_tuple(s_key->second, value);
+					transfer.emplace(s_key->second.get(), value);
 				}
 			}
 		}
@@ -67,7 +68,7 @@ void ui_state_transfers::on_pushButton_add_clicked()
 	if (c_item == nullptr)return;
 	c_item = c_item->parent() == nullptr ? c_item : c_item->parent();
 	auto item = new QTreeWidgetItem;
-	item->setText(2, QString::fromStdString((**_map_state).begin()->first));
+	item->setText(2, QString::fromStdString((*_map_state).begin()->first));
 	item->setText(3, QString::number(0.0));
 }
 

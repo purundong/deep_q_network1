@@ -64,6 +64,12 @@
     <ClCompile Include="state\random_process.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="state\map_action_factory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="neural_network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libtorch.h">
@@ -78,9 +84,6 @@
     <ClInclude Include="state\action.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="state\ui_reword.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="delegate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -88,6 +91,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="state\random_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="state\map_action_factory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="neural_network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -107,6 +116,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="state\ui_state_transfers.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="state\ui_reword.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

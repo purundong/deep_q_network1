@@ -12,7 +12,7 @@ ui_reword::ui_reword(state_ptr state_obj, QWidget* parent)
 	text* no_text = new text(false);
 	ui.tableWidget->setItemDelegateForColumn(0, no_text);
 	ui.tableWidget->setItemDelegateForColumn(1, double_obj);
-	auto& rewards = _state->rewards();
+	auto& rewards = _state->get_rewards();
 	ui.tableWidget->setRowCount(rewards.size());
 	for (int row = 0; auto & [r, p]: rewards)
 	{
@@ -23,7 +23,7 @@ ui_reword::ui_reword(state_ptr state_obj, QWidget* parent)
 
 ui_reword::~ui_reword()
 {
-	auto& rewards = _state->rewards();
+	auto& rewards = _state->get_rewards();
 	rewards.clear();
 	for (int i = 0 ; i < ui.tableWidget->rowCount();++i)
 		rewards[ui.tableWidget->item(i, 0)->text().toDouble()] = ui.tableWidget->item(i, 1)->text().toDouble();

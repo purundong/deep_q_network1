@@ -46,7 +46,7 @@ void ui_state::show_state()
 		QImage image;
 		QPalette palette;
 		image.load(":/test_rl/arrow.png"); // 指定图片所在位置及图片名
-		QMatrix matrix;
+		QTransform matrix;
 		matrix.rotate(-90.0);
 		palette.setBrush(this->backgroundRole(), QBrush(image.transformed(matrix, Qt::FastTransformation).scaled(ui.widget_up->size())));
 		ui.widget_up->setPalette(palette);
@@ -72,7 +72,7 @@ void ui_state::show_state()
 		QImage image;
 		QPalette palette;
 		image.load(":/test_rl/arrow.png"); // 指定图片所在位置及图片名
-		QMatrix matrix;
+		QTransform matrix;
 		matrix.rotate(90.0);
 		palette.setBrush(this->backgroundRole(), QBrush(image.transformed(matrix, Qt::FastTransformation).scaled(ui.widget_dow->size())));
 		ui.widget_dow->setPalette(palette);
@@ -86,7 +86,7 @@ void ui_state::show_state()
 		QImage image;
 		QPalette palette;
 		image.load(":/test_rl/arrow.png"); // 指定图片所在位置及图片名
-		QMatrix matrix;
+		QTransform matrix;
 		matrix.rotate(180);
 		palette.setBrush(this->backgroundRole(), QBrush(image.transformed(matrix, Qt::FastTransformation).scaled(ui.widget_left->size())));
 		ui.widget_left->setPalette(palette);
@@ -114,5 +114,4 @@ void ui_state::show_state()
 		set_widget_color(QColor(51, 51, 255));
 	else
 		set_widget_color(QColor(153, 0, 76));
-	
 }

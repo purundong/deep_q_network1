@@ -2,6 +2,7 @@
 #include "declare.h"
 #include <memory>
 #include <map>
+#include <string>
 
 class state;
 using state_ptr = std::shared_ptr<state>;
@@ -14,13 +15,16 @@ public:
 public:
 	const feature _feature;
 	double _value; //动作的价值
-	std::map<std::weak_ptr<state>, probability> _state_transfer;
+	std::map<state*, probability> _state_transfer;
 public:
 	inline double value() { return _value; };
 	inline void set_value(const double& value) { _value = value; };
 	inline const action::feature& get_feature() { return _feature; }
+	inline std::map<state*, probability>& get_state_transfer() {return _state_transfer;}
 public:
-	state_ptr sample_state(); //根据动作转移概率抽样一个状态
+	state* sample_state(); //根据动作转移概率抽样一个状态
+	const std::string get_name();
+	void set_state_transfer(state* s, probability p);
 };
 using action_ptr = std::shared_ptr<action>;
 using map_action = std::map<action::action::feature, action_ptr>;
