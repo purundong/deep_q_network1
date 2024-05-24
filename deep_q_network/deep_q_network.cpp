@@ -96,5 +96,8 @@ void deep_q_network::on_pushButton_make_state_clicked()
 void deep_q_network::on_pushButton_solve_clicked()
 {
 	auto fun = [&]() {
+		auto learning_rate = ui.doubleSpinBox_learning_rate->value();
+
 		};
+
 }
