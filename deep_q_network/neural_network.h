@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "libtorch.h"
+#include <memory>
 
 class neural_network :public torch::nn::Module
 {
@@ -9,5 +10,7 @@ public:
 	virtual ~neural_network();
 public:
 	torch::Tensor forward(torch::Tensor x);
+	void show();
 };
+using neural_network_ptr = std::shared_ptr<neural_network>;
 

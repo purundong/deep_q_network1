@@ -2,11 +2,12 @@
 #include <QScrollBar>
 #include "state/ui_state.h"
 #include <QMessageBox>
+#include "neural_network.h"
 
-deep_q_network::deep_q_network(QWidget *parent)
-    : QWidget(parent)
+deep_q_network::deep_q_network(QWidget* parent)
+	: QWidget(parent)
 {
-    ui.setupUi(this);
+	ui.setupUi(this);
 }
 
 deep_q_network::~deep_q_network()
@@ -97,7 +98,14 @@ void deep_q_network::on_pushButton_solve_clicked()
 {
 	auto fun = [&]() {
 		auto learning_rate = ui.doubleSpinBox_learning_rate->value();
+		auto step_count = ui.spinBox_step_count->value();
+		auto learning_num = ui.spinBox_learning_num->value();
 
-		};
+		neural_network main_network(100), target_network(100);
+		for (int i = 0; i < learning_num; ++i) {
+			auto trajectory_obj = _environment->sampling(step_count);
+
+		}
+	};
 
 }

@@ -66,3 +66,45 @@ environment::environment(int row_size, int col_size, int trap, int target)
 		key->second->set_map_action(factory->create_map_action(*_map_state, row_size - 1, col_size - 1));
 
 }
+
+trajectory_ptr environment::sampling(int step_count)
+{
+	auto trajectory_obj = std::make_shared<trajectory>();
+	auto curr_state_obj = _map_state->begin()->second;
+	for (int i = 0; i < step_count; ++i) {
+		auto action_obj = curr_state_obj->sample_action();
+		auto next_state_obj = action_obj->sample_state();
+		auto reword = next_state_obj->sample_reword();
+		trajectory_obj->push_back({ curr_state_obj ,action_obj,reword });
+	}
+	return trajectory_obj;
+}
+
+replay_buf::replay_buf(trajectory_ptr trajectory_obj, neural_network_ptr target_network, torch::DeviceType dev_type)
+{
+	at::TensorOptions options;
+	options.device(dev_type);
+	options.dtype(torch::kFloat32);
+	_target = torch::empty({ (long long)trajectory_obj->size() , 1 }, options);
+	_feature = torch::empty({ (long long)trajectory_obj->size() , 3 }, options);
+	for (int i = 0; auto & sampling : *trajectory_obj) {
+		auto x = torch::empty({ 1 , 3 }, options);
+		auto& state_feature_obj = sampling._state->get_feature();
+		x[0] = (float)state_feature_obj._x;
+		x[1] = (float)state_feature_obj._y;
+		x[2] = (float)sampling._action->get_feature();
+		_target[i][0] = sampling._reword + target_network->forward(x);
+		_feature[i] = x;
+		++i;
+	}
+}
+
+torch::data::Example<> replay_buf::get(size_t index)
+{
+	return torch::data::Example<>();
+}
+
+torch::optional<size_t> replay_buf::size() const
+{
+	return torch::optional<size_t>();
+}
