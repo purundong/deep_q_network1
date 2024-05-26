@@ -70,41 +70,78 @@ environment::environment(int row_size, int col_size, int trap, int target)
 trajectory_ptr environment::sampling(int step_count)
 {
 	auto trajectory_obj = std::make_shared<trajectory>();
-	auto curr_state_obj = _map_state->begin()->second;
+	auto curr_state_obj = _map_state->begin()->second.get();
 	for (int i = 0; i < step_count; ++i) {
-		auto action_obj = curr_state_obj->sample_action();
+		auto action_obj = curr_state_obj->sample_action().get();
 		auto next_state_obj = action_obj->sample_state();
 		auto reword = next_state_obj->sample_reword();
-		trajectory_obj->push_back({ curr_state_obj ,action_obj,reword });
+		trajectory_obj->push_sample({ curr_state_obj, next_state_obj ,action_obj, reword });
+		curr_state_obj = next_state_obj;
 	}
 	return trajectory_obj;
 }
 
-replay_buf::replay_buf(trajectory_ptr trajectory_obj, neural_network_ptr target_network, torch::DeviceType dev_type)
+replay_buf::replay_buf(const std::list<sample>& batch, neural_network_ptr target_network, float gama, torch::Device dev_type):
+	_buf_size{ batch.size()}
 {
-	at::TensorOptions options;
-	options.device(dev_type);
-	options.dtype(torch::kFloat32);
-	_target = torch::empty({ (long long)trajectory_obj->size() , 1 }, options);
-	_feature = torch::empty({ (long long)trajectory_obj->size() , 3 }, options);
-	for (int i = 0; auto & sampling : *trajectory_obj) {
-		auto x = torch::empty({ 1 , 3 }, options);
-		auto& state_feature_obj = sampling._state->get_feature();
-		x[0] = (float)state_feature_obj._x;
-		x[1] = (float)state_feature_obj._y;
-		x[2] = (float)sampling._action->get_feature();
-		_target[i][0] = sampling._reword + target_network->forward(x);
-		_feature[i] = x;
+	_target = torch::empty({ (long long)batch.size() , 1 }, dev_type);
+	_feature = torch::empty({ (long long)batch.size() , 3 }, dev_type);
+	for (int i = 0; auto & sampling : batch) {
+		auto& curr_state_feature_obj = sampling._next_state->get_feature();
+
+		_feature[i][0] = (float)curr_state_feature_obj._x;
+		_feature[i][1] = (float)curr_state_feature_obj._y;
+		_feature[i][2] = (float)sampling._curr_action->get_feature();
+
+		auto x = torch::empty({ 5 , 3 }, dev_type);
+		auto& next_state_feature_obj = sampling._next_state->get_feature();
+
+		x[0][0] = (float)next_state_feature_obj._x;
+		x[0][1] = (float)next_state_feature_obj._y;
+		x[0][2] = (float)action::feature::up;
+
+		x[1][0] = (float)next_state_feature_obj._x;
+		x[1][1] = (float)next_state_feature_obj._y;
+		x[1][2] = (float)action::feature::left;
+
+		x[2][0] = (float)next_state_feature_obj._x;
+		x[2][1] = (float)next_state_feature_obj._y;
+		x[2][2] = (float)action::feature::down;
+
+		x[3][0] = (float)next_state_feature_obj._x;
+		x[3][1] = (float)next_state_feature_obj._y;
+		x[3][2] = (float)action::feature::right;
+
+		x[4][0] = (float)next_state_feature_obj._x;
+		x[4][1] = (float)next_state_feature_obj._y;
+		x[4][2] = (float)action::feature::fixed;
+
+		_target[i][0] = sampling._reword + gama * torch::max(sampling._reword + target_network->forward(x));
 		++i;
 	}
 }
 
 torch::data::Example<> replay_buf::get(size_t index)
 {
-	return torch::data::Example<>();
+	return { _feature[index], _target[index] };
 }
 
 torch::optional<size_t> replay_buf::size() const
 {
-	return torch::optional<size_t>();
+	return _buf_size;
+}
+
+std::unique_ptr<torch::data::StatelessDataLoader<replay_buf, torch::data::samplers::SequentialSampler>> trajectory::get_replay_buf(neural_network_ptr target_network, size_t batch_size, float gama, torch::Device dev_type)
+{
+	return torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(replay_buf(_samples, target_network, gama, dev_type), batch_size);
+}
+
+std::unique_ptr<torch::data::StatelessDataLoader<replay_buf, torch::data::samplers::RandomSampler>> trajectory::get_random_replay_buf(neural_network_ptr target_network, size_t batch_size, float gama, torch::Device dev_type)
+{
+	return torch::data::make_data_loader<torch::data::samplers::RandomSampler>(replay_buf(_samples, target_network, gama, dev_type), batch_size);
+}
+
+void trajectory::push_sample(sample&& sample_obj)
+{
+	_samples.push_back(std::move(sample_obj));
 }

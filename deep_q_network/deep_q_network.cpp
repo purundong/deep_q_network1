@@ -96,16 +96,47 @@ void deep_q_network::on_pushButton_make_state_clicked()
 
 void deep_q_network::on_pushButton_solve_clicked()
 {
-	auto fun = [&]() {
-		auto learning_rate = ui.doubleSpinBox_learning_rate->value();
-		auto step_count = ui.spinBox_step_count->value();
-		auto learning_num = ui.spinBox_learning_num->value();
+	auto neural_num = ui.spinBox_neural_num->value();
+	auto learning_rate = ui.doubleSpinBox_learning_rate->value();
+	auto gama = ui.doubleSpinBox_gama->value();
+	auto error = ui.doubleSpinBox_error->value();
+	auto step_count = ui.doubleSpinBox_error->value();
+	auto model_num = ui.spinBox_model_num->value();
+	auto replay_num = ui.spinBox_replay_num->value();
 
-		neural_network main_network(100), target_network(100);
-		for (int i = 0; i < learning_num; ++i) {
-			auto trajectory_obj = _environment->sampling(step_count);
 
+	std::unique_ptr<torch::Device> device;
+	if (torch::cuda::is_available() && torch::cuda::cudnn_is_available()) {
+		device = std::make_unique<torch::Device>(torch::kCUDA);
+	}
+	else {
+		device = std::make_unique<torch::Device>(torch::kCPU);
+		QMessageBox::warning(this, QString::fromLocal8Bit("警告"), 
+			QString::fromLocal8Bit("你得设备不支持cuda以及cudnn加速,如果想要获得更好得性能请正确安装cuda12.4和对应的cudnn"), QMessageBox::Ok);
+	}
+
+	auto fun = [&](std::unique_ptr<torch::Device> device, unsigned int neural_num, float learning_rate, float gama,
+		float error, size_t step_count, size_t model_num, int replay_num) {
+		neural_network_ptr main_network{ std::make_shared<neural_network>(neural_num) },
+			target_network{ std::make_shared<neural_network>(neural_num) };
+		main_network->to(*device);
+		target_network->to(*device);
+
+		torch::optim::SGDOptions opt(learning_rate);
+		torch::optim::SGD sgd(main_network->parameters(), opt);
+		auto mse_loss = torch::nn::MSELoss();
+		auto replay_buf_obj = _environment->sampling(step_count)->get_random_replay_buf(target_network, model_num, gama, *device);
+			for (auto& buf_key : *replay_buf_obj) {
+				for (int i = 0; i < buf_key.size(); ++i) {
+					
+					auto loss = mse_loss(buf_key[i].target, main_network->forward(buf_key[i].data));
+					loss.backward();
+				}
+
+			}
+			target_network->copy_params(*main_network);
 		}
+
 	};
 
 }

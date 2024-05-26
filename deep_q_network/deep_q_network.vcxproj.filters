@@ -70,6 +70,9 @@
     <ClCompile Include="neural_network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_data_set.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libtorch.h">
@@ -97,6 +100,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="neural_network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="test_data_set.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

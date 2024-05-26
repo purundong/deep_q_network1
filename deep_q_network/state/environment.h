@@ -2,15 +2,36 @@
 #include "state.h"
 #include "neural_network.h"
 
+class trajectory;
+using trajectory_ptr = std::shared_ptr<trajectory>;
+
 struct sample
 {
-	state_ptr _state;
-	action_ptr _action;
+	state* _curr_state, *_next_state;
+	action* _curr_action;
 	double _reword;
 };
 
-using trajectory = std::list<sample>;
-using trajectory_ptr = std::shared_ptr<trajectory>;
+class replay_buf : public torch::data::Dataset<replay_buf>
+{
+	at::Tensor _target, _feature;
+	size_t _buf_size;
+public:
+	replay_buf(const std::list<sample>& batch, neural_network_ptr target_network, float gama, torch::Device dev_type);
+public:
+	virtual torch::data::Example<> get(size_t index);
+	virtual torch::optional<size_t> size() const;
+};
+
+class trajectory : public std::enable_shared_from_this<trajectory>
+{
+	std::list<sample> _samples;
+public:
+	std::unique_ptr<torch::data::StatelessDataLoader<replay_buf, torch::data::samplers::SequentialSampler>> get_replay_buf(neural_network_ptr target_network, size_t batch_size, float gama, torch::Device dev_type);
+	std::unique_ptr<torch::data::StatelessDataLoader<replay_buf, torch::data::samplers::RandomSampler>> get_random_replay_buf(neural_network_ptr target_network, size_t batch_size, float gama, torch::Device dev_type);
+public:
+	void push_sample(sample&& sample_obj);
+};
 
 class environment
 {
@@ -23,13 +44,3 @@ public:
 };
 
 using environment_ptr = std::shared_ptr<environment>;
-
-class replay_buf :public torch::data::Dataset<replay_buf>
-{
-	at::Tensor _target, _feature;
-public:
-	replay_buf(trajectory_ptr trajectory_obj, neural_network_ptr target_network, torch::DeviceType dev_type);
-public:
-	virtual torch::data::Example<> get(size_t index);
-	virtual torch::optional<size_t> size() const;
-};
