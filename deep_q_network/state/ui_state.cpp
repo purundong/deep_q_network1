@@ -45,7 +45,7 @@ void ui_state::show_state()
 		ui.widget_up->setAutoFillBackground(true);
 		QImage image;
 		QPalette palette;
-		image.load(":/test_rl/arrow.png"); // 指定图片所在位置及图片名
+		image.load(":/deep_q_network/arrow.png"); // 指定图片所在位置及图片名
 		QTransform matrix;
 		matrix.rotate(-90.0);
 		palette.setBrush(this->backgroundRole(), QBrush(image.transformed(matrix, Qt::FastTransformation).scaled(ui.widget_up->size())));
@@ -59,7 +59,7 @@ void ui_state::show_state()
 		ui.widget_right->setAutoFillBackground(true);
 		QImage image;
 		QPalette palette;
-		image.load(":/test_rl/arrow.png"); // 指定图片所在位置及图片名
+		image.load(":/deep_q_network/arrow.png"); // 指定图片所在位置及图片名
 		palette.setBrush(this->backgroundRole(), QBrush(image.scaled(ui.widget_right->size())));
 		ui.widget_right->setPalette(palette);
 		auto graph = new QGraphicsOpacityEffect(ui.widget_up);
@@ -71,7 +71,7 @@ void ui_state::show_state()
 		ui.widget_dow->setAutoFillBackground(true);
 		QImage image;
 		QPalette palette;
-		image.load(":/test_rl/arrow.png"); // 指定图片所在位置及图片名
+		image.load(":/deep_q_network/arrow.png"); // 指定图片所在位置及图片名
 		QTransform matrix;
 		matrix.rotate(90.0);
 		palette.setBrush(this->backgroundRole(), QBrush(image.transformed(matrix, Qt::FastTransformation).scaled(ui.widget_dow->size())));
@@ -85,7 +85,7 @@ void ui_state::show_state()
 		ui.widget_left->setAutoFillBackground(true);
 		QImage image;
 		QPalette palette;
-		image.load(":/test_rl/arrow.png"); // 指定图片所在位置及图片名
+		image.load(":/deep_q_network/arrow.png"); // 指定图片所在位置及图片名
 		QTransform matrix;
 		matrix.rotate(180);
 		palette.setBrush(this->backgroundRole(), QBrush(image.transformed(matrix, Qt::FastTransformation).scaled(ui.widget_left->size())));
@@ -99,7 +99,7 @@ void ui_state::show_state()
 		ui.widget_fixed->setAutoFillBackground(true);
 		QImage image;
 		QPalette palette;
-		image.load(":/test_rl/circle.png"); // 指定图片所在位置及图片名
+		image.load(":/deep_q_network/circle.png"); // 指定图片所在位置及图片名
 		palette.setBrush(this->backgroundRole(), QBrush(image.scaled(ui.widget_fixed->size())));
 		ui.widget_fixed->setPalette(palette);
 		auto graph = new QGraphicsOpacityEffect(ui.widget_up);

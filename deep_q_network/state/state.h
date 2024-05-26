@@ -41,6 +41,7 @@ public:
 	inline map_action_ptr get_actions() {return _map_action;}; 
 	inline std::map<reward, probability>& get_rewards() { return _rewards; }
 	inline void set_reward(reward r, probability p) { _rewards[r] = p; }
+	inline void reset_reward(reward r, probability p) { _rewards.clear(); _rewards[r] = p; }
 	inline void set_map_action(map_action_ptr actions) { _map_action = actions; }
 public:
 	double reward_expectations(); //获取当前状态的奖励期望

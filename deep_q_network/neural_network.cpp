@@ -21,6 +21,8 @@ torch::Tensor neural_network::forward(torch::Tensor x)
 void neural_network::show()
 {
 	auto params = parameters();
+	//eval();
+	//train()
 	for (int i = 0; i < params.size(); ++i)
 		std::cout << params[i] << "\n---------\n";
 }

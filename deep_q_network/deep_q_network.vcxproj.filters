@@ -73,6 +73,9 @@
     <ClCompile Include="test_data_set.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="qcustomplot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libtorch.h">
@@ -125,6 +128,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="state\ui_reword.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="qcustomplot.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

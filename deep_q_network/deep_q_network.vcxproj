@@ -37,12 +37,12 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>qt_5.15.10_64</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;widgets;printsupport</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>qt_5.15.10_64</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;widgets;printsupport</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -67,6 +67,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>D:\libtorch_gpu\release\include;D:\libtorch_gpu\release\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>D:\libtorch_gpu\release\lib\*.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -80,6 +81,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>D:\libtorch_gpu\debug\include;D:\libtorch_gpu\debug\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -113,6 +115,7 @@
   <ItemGroup>
     <ClCompile Include="delegate.cpp" />
     <ClCompile Include="neural_network.cpp" />
+    <ClCompile Include="qcustomplot.cpp" />
     <ClCompile Include="state\map_action_factory.cpp" />
     <ClCompile Include="state\random_process.cpp" />
     <ClCompile Include="state\environment.cpp" />
@@ -134,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="delegate.h" />
     <ClInclude Include="neural_network.h" />
+    <QtMoc Include="qcustomplot.h" />
     <ClInclude Include="state\map_action_factory.h" />
     <ClInclude Include="state\random_process.h" />
     <ClInclude Include="state\environment.h" />
