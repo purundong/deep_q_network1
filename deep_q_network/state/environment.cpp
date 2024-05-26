@@ -117,6 +117,23 @@ trajectory_ptr environment::sampling(int step_count)
 	return trajectory_obj;
 }
 
+void environment::update_agent(neural_network_ptr network, torch::Device dev_type)
+{
+	for (auto& [state_name, state_obj] : *_map_state) {
+		for (auto& [action_name, action_obj] : *state_obj->get_actions()) {
+			auto state_feature_obj = state_obj->get_feature();
+			auto feature = torch::empty({ 1 , 3 }, dev_type);
+			feature[0][0] = (float)state_feature_obj._x;
+			feature[0][1] = (float)state_feature_obj._y;
+			feature[0][2] = (float)action_obj->get_feature();
+			auto y = network->forward(feature);
+			action_obj->set_value(y.item<double>());
+		}
+		state_obj->update_policy_greedy();
+		state_obj->update_value();
+	}
+}
+
 replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neural_network_ptr target_network, float gama, torch::Device dev_type):
 	_buf_size{ batch.size()}
 {

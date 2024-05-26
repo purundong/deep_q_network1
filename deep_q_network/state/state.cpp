@@ -6,6 +6,7 @@
 #include "random_process.h"
 #include "ui_reword.h"
 #include "ui_state_transfers.h"
+#include "ui_state_info.h"
 
 double state::reward_expectations()
 {
@@ -35,6 +36,21 @@ reward state::sample_reword()
 	std::transform(_rewards.begin(), _rewards.end(), probability_vec.begin(), fun);
 	auto a = random_process::sampling(probability_vec);
 	return rewards[a];
+}
+
+void state::update_policy_greedy()
+{
+	auto max = std::max_element(_map_action->begin(), _map_action->end(), [](const auto& a, const auto& b) {return a.second->value() < b.second->value(); });
+	for (auto& [action_type, action_obj] : *_map_action)
+		_policy[action_type] = (action_type == max->first) ? 1.0 : 0.0;
+}
+
+void state::update_value()
+{
+	_value = 0.0;
+	for (auto& [action_type, action_obj] : *_map_action) {
+		_value += _policy[action_type] * action_obj->value();
+	}
 }
 
 state::state(const state_feature& feature) :
@@ -72,4 +88,9 @@ std::shared_ptr<QDialog> state::make_set_reword()
 std::shared_ptr<QDialog> state::make_set_state_transfers(map_state_ptr states)
 {
 	return std::dynamic_pointer_cast<QDialog>(std::make_shared<ui_state_transfers>(shared_from_this(), states));
+}
+
+std::shared_ptr<QDialog> state::make_show_state_info()
+{
+	return std::dynamic_pointer_cast<QDialog>(std::make_shared<ui_state_info>(shared_from_this()));
 }

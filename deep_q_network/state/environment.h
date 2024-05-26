@@ -41,8 +41,10 @@ class environment
 public:
 	environment(int row_size, int col_size, int trap, int target);//行数，列数，陷阱数，目标数
 	trajectory_ptr sampling(int step_count);
+	void update_agent(neural_network_ptr network, torch::Device dev_type);
 public:
 	inline map_state_ptr get_map_state() { return _map_state; }
+	inline bool empty() {return _map_state->empty();}
 };
 
 using environment_ptr = std::shared_ptr<environment>;

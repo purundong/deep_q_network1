@@ -38,6 +38,7 @@ public:
 	inline double value() { return _value; };
 	inline void set_value(const double& value) { _value = value; };
 	inline probability policy(const action::feature& type) { return _policy[type]; }
+	inline std::map<action::action::feature, probability>& policy() { return _policy; }
 	inline map_action_ptr get_actions() {return _map_action;}; 
 	inline std::map<reward, probability>& get_rewards() { return _rewards; }
 	inline void set_reward(reward r, probability p) { _rewards[r] = p; }
@@ -47,11 +48,14 @@ public:
 	double reward_expectations(); //获取当前状态的奖励期望
 	action_ptr sample_action(); //根据策略抽样一个动作
 	reward sample_reword(); //采样一个奖励
+	void update_policy_greedy();
+	void update_value();
 public:
 	state(const state_feature& feature);
 	state(state_feature&& feature);
 	std::string get_name();
 	std::shared_ptr<QDialog> make_set_reword(); //获取当前状态的控件
 	std::shared_ptr<QDialog> make_set_state_transfers(map_state_ptr states); //获取当前状态的控件
+	std::shared_ptr<QDialog> make_show_state_info();
 };
 

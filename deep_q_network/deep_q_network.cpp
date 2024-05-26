@@ -14,9 +14,11 @@ deep_q_network::deep_q_network(QWidget* parent)
 	ui.widget_loss->setLayout(layout);
 	layout->addWidget(_plot.get());
 	_plot->setContentsMargins(0, 0, 0, 0);
+	
 	connect(this, SIGNAL(sig_loss(double,double)), this, SLOT(sot_loss(double, double)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_msg_box(QString)), this, SLOT(sot_msg_box(QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_init(double, double, double, double)), this, SLOT(sot_init(double, double, double, double)), Qt::BlockingQueuedConnection);
+	connect(this, SIGNAL(sig_show_environment()), this, SLOT(sot_show_environment()), Qt::QueuedConnection);
 	init_tableWidget();
 }
 
@@ -44,15 +46,26 @@ void deep_q_network::init_tableWidget()
 	menu_action = new QAction(QString::fromLocal8Bit("设置状态转移"));
 	connect(menu_action, SIGNAL(triggered()), this, SLOT(menu_set_transfers()));
 	_menu->addAction(menu_action);
-	//menu_action = new QAction(QString::fromLocal8Bit("查看状态信息"));
-	//connect(menu_action, SIGNAL(triggered()), this, SLOT(menu_state_info()));
-	//_menu->addAction(menu_action);
+	menu_action = new QAction(QString::fromLocal8Bit("查看状态信息"));
+	connect(menu_action, SIGNAL(triggered()), this, SLOT(menu_state_info()));
+	_menu->addAction(menu_action);
 	ui.horizontalSlider->blockSignals(true);
 	ui.horizontalSlider->setPageStep(1);
 	ui.horizontalSlider->setValue(_magni_fication);
 	ui.horizontalSlider->setMinimum(1);
 	ui.horizontalSlider->setMaximum(20);
 	ui.horizontalSlider->blockSignals(false);
+}
+
+void deep_q_network::show_environment()
+{
+	auto map_state_obj = _environment->get_map_state();
+	for (auto& s_key : *map_state_obj) {
+		auto& fat = s_key.second->get_feature();
+		auto* s_ui = new ui_state(s_key.second);
+		ui.tableWidget->setCellWidget(fat._x, fat._y, s_ui);
+		s_ui->show_state();
+	}
 }
 
 void deep_q_network::menu_set_rewards()
@@ -76,6 +89,16 @@ void deep_q_network::menu_set_transfers()
 	s_ui->get_state()->make_set_state_transfers(_environment->get_map_state())->exec();
 }
 
+void deep_q_network::menu_state_info()
+{
+	int row = ui.tableWidget->currentRow();
+	int col = ui.tableWidget->currentColumn();
+	if (row < 0 || col < 0) return;
+	auto* s_ui = dynamic_cast<ui_state*>(ui.tableWidget->cellWidget(row, col));
+	if (s_ui == nullptr) return;
+	s_ui->get_state()->make_show_state_info()->exec();
+}
+
 void deep_q_network::on_pushButton_make_state_clicked()
 {
 	int r_size = ui.spinBox_row->value();
@@ -95,13 +118,7 @@ void deep_q_network::on_pushButton_make_state_clicked()
 	ui.tableWidget->setRowCount(r_size);
 	ui.tableWidget->setColumnCount(c_size);
 	_environment = std::make_shared<environment>(r_size, c_size, trap, target);
-	auto map_state_obj = _environment->get_map_state();
-	for (auto& s_key : *map_state_obj) {
-		auto& fat = s_key.second->get_feature();
-		auto* s_ui = new ui_state(s_key.second);
-		ui.tableWidget->setCellWidget(fat._x, fat._y, s_ui);
-		s_ui->show_state();
-	}
+	show_environment();
 }
 
 void deep_q_network::on_pushButton_solve_clicked()
@@ -113,6 +130,12 @@ void deep_q_network::on_pushButton_solve_clicked()
 		_thr = nullptr;
 		return;
 	}
+
+	if (_environment == nullptr || _environment->empty()) {
+		sig_msg_box(QString::fromLocal8Bit("没有状态"));
+		return;
+	}
+
 
 	auto neural_num = ui.spinBox_neural_num->value();
 	auto learning_rate = ui.doubleSpinBox_learning_rate->value();
@@ -164,7 +187,9 @@ void deep_q_network::on_pushButton_solve_clicked()
 						target_network->copy_params(*main_network);
 					}
 				}
-
+				_environment->update_agent(main_network, *device);
+				sig_show_environment();
+				sig_msg_box(QString::fromLocal8Bit("完成"));
 			}
 			catch (const std::runtime_error& e) {
 				auto a = e.what();
@@ -207,6 +232,11 @@ void deep_q_network::sot_init(double x_min, double x_max, double y_min, double y
 void deep_q_network::sot_msg_box(QString msg)
 {
 	QMessageBox::warning(this, QString::fromLocal8Bit("错误"), msg, QMessageBox::Ok);
+}
+
+void deep_q_network::sot_show_environment()
+{
+	show_environment();
 }
 
 void deep_q_network::on_horizontalSlider_valueChanged(int value)

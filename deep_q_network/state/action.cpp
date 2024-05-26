@@ -18,19 +18,6 @@ state* action::sample_state()
 	return states[a];
 }
 
-const std::string action::get_name()
-{
-	switch (_feature)
-	{
-	case up: { return "上"; }break;
-	case right: { return "右"; }break;
-	case down: { return "下"; }break;
-	case left: { return "左"; }break;
-	case fixed: { return "原"; }break;
-	default: {return "错误"; }break;
-	}
-}
-
 void action::set_state_transfer(state* s, probability p)
 {
 	_state_transfer[s] = p;

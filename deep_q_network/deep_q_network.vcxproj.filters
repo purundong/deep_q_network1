@@ -76,6 +76,9 @@
     <ClCompile Include="qcustomplot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="state\ui_state_info.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libtorch.h">
@@ -119,6 +122,9 @@
     <QtUic Include="state\ui_state_transfers.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="state\ui_state_info.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="state\ui_state.h">
@@ -131,6 +137,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="qcustomplot.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="state\ui_state_info.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

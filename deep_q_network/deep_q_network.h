@@ -16,18 +16,22 @@ public:
 	deep_q_network(QWidget* parent = nullptr);
 	~deep_q_network();
 	void init_tableWidget();
+	void show_environment();
 signals:
 	void sig_loss(double x, double y);
 	void sig_init(double x_min, double x_max, double y_min, double y_max);
 	void sig_msg_box(QString msg);
+	void sig_show_environment();
 public slots:
-	void menu_set_rewards();
-	void menu_set_transfers();
-	void on_pushButton_make_state_clicked();
-	void on_pushButton_solve_clicked();
 	void sot_loss(double x, double y);
 	void sot_init(double x_min, double x_max, double y_min, double y_max);
 	void sot_msg_box(QString msg);
+	void sot_show_environment();
+	void menu_set_rewards();
+	void menu_set_transfers();
+	void menu_state_info();
+	void on_pushButton_make_state_clicked();
+	void on_pushButton_solve_clicked();
 	void on_horizontalSlider_valueChanged(int value);
 	void on_tableWidget_customContextMenuRequested(QPoint point);
 private:

@@ -123,6 +123,7 @@
     <ClCompile Include="state\state.cpp" />
     <ClCompile Include="state\ui_reword.cpp" />
     <ClCompile Include="state\ui_state.cpp" />
+    <ClCompile Include="state\ui_state_info.cpp" />
     <ClCompile Include="state\ui_state_transfers.cpp" />
     <ClCompile Include="test_data_set.cpp" />
     <QtRcc Include="deep_q_network.qrc" />
@@ -132,6 +133,7 @@
     <ClCompile Include="main.cpp" />
     <QtUic Include="state\ui_reword.ui" />
     <QtUic Include="state\ui_state.ui" />
+    <QtUic Include="state\ui_state_info.ui" />
     <QtUic Include="state\ui_state_transfers.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -145,6 +147,7 @@
     <ClInclude Include="libtorch.h" />
     <ClInclude Include="state\declare.h" />
     <ClInclude Include="state\state.h" />
+    <QtMoc Include="state\ui_state_info.h" />
     <ClInclude Include="test_data_set.h" />
     <QtMoc Include="state\ui_reword.h" />
     <QtMoc Include="state\ui_state_transfers.h" />
