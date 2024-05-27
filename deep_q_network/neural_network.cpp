@@ -13,7 +13,8 @@ neural_network::~neural_network()
 
 torch::Tensor neural_network::forward(torch::Tensor x)
 {
-	x = torch::nn::functional::relu(_in_layour->forward(x));
+	//x = torch::nn::functional::relu(_in_layour->forward(x));
+	x = _in_layour->forward(x);
 	x = torch::nn::functional::relu(_hid_layer->forward(x));
 	return _out_layer->forward(x);
 }

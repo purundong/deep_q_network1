@@ -166,8 +166,7 @@ void deep_q_network::on_pushButton_solve_clicked()
 				main_network->to(*device);
 				target_network->to(*device);
 				boost::this_thread::interruption_point();
-				torch::optim::SGDOptions opt(learning_rate);
-				torch::optim::SGD sgd(main_network->parameters(), opt);
+				torch::optim::AdamW sgd(main_network->parameters(), learning_rate);
 				auto mse_loss = torch::nn::MSELoss();
 				auto trajectory_obj = _environment->sampling(step_count);
 				unsigned int update_i = 1;
