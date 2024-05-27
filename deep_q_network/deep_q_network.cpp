@@ -161,50 +161,47 @@ void deep_q_network::on_pushButton_dqn_clicked()
 			try
 			{
 				sig_init(0.0, step_count * replay_num, 0.0, 1);
-				neural_network_ptr main_network{ std::make_shared<neural_network>(neural_num) },
-					target_network{ std::make_shared<neural_network>(neural_num) };
+				neural_network_ptr main_network{ std::make_shared<neural_network>(neural_num) },//定义main_network, neural_num为隐藏神经元成个数
+					target_network{ std::make_shared<neural_network>(neural_num) };//定义target_network, neural_num为隐藏神经元成个数
 				main_network->to(*device);
 				target_network->to(*device);
 				boost::this_thread::interruption_point();
-				torch::optim::AdamW sgd(main_network->parameters(), learning_rate);
-				auto mse_loss = torch::nn::MSELoss();
-				auto trajectory_obj = _environment->sampling(step_count);
-				unsigned int update_i = 1;
-				for (int i = 0; i < replay_num; ++i) {
-					//for (int step_i = 0; step_i < step_count;) {
+				torch::optim::AdamW sgd(main_network->parameters(), learning_rate);//建立优化器设置学习率 learning_rate为学习率
+				auto mse_loss = torch::nn::MSELoss();//定义损失函数(Qpi(s,a)-Q(s,a))^2
 
-					//	auto replay_buf_obj = trajectory_obj->get_random_replay_buf(target_network, model_num, gama, *device);
-					//	for (auto& buf_key : *replay_buf_obj) {
-					//		boost::this_thread::interruption_point();
-					//		sgd.zero_grad();
-					//		auto loss = mse_loss(buf_key[0].target, main_network->forward(buf_key[0].data));
-					//		loss.backward({ torch::ones_like(loss) }, true);
-					//		sgd.step();
-					//		if (update_i++ % 10)
-					//			sig_loss(update_i, loss.item<double>());
-					//	}
-					//	step_i += model_num - 1;
-					//	target_network->copy_params(*main_network);
-					//}
-					auto replay_buf_obj = trajectory_obj->get_random_replay_buf(*device);
+				auto trajectory_obj = _environment->sampling(step_count); //在环境中走step_count步
 
-					for (auto& buf_key : *replay_buf_obj) {
+				unsigned int update_i = 0;
+				for (int i = 0; i < replay_num; ++i) {//遍历回放次数
+					auto replay_buf_obj = trajectory_obj->get_random_replay_buf(*device); //生成一个打乱顺序的replay_buf;
+					for (auto& buf_key : *replay_buf_obj) { //遍历这个打乱顺序的replay_buf
+
 						boost::this_thread::interruption_point();
-						sgd.zero_grad();
-						auto ss1 = buf_key[0].target.slice(0, 1, 16).view({ 5,3 });
-						auto q = target_network->forward(buf_key[0].target.slice(0, 1, 16).view({ 5,3 })); //计算Q(st+1,A)
-						auto td_target = (buf_key[0].target[0].view({ 1 }) + gama * torch::max(q)).view({ 1,1 }); //rewod + gama * maxQ(st+1,A)
-						auto y = main_network->forward(buf_key[0].data.view({ 1,3 }));
-						auto loss = mse_loss(td_target, y);
-						loss.backward({ torch::ones_like(loss) }, true);
-						sgd.step();
-						if ((update_i % 10) == 0)
+
+						sgd.zero_grad(); //清空神经网络梯度
+						//计算maxQ(st+1,a)就是先前的replay_buf里的_target这里取出第1到15的数据转换成5*3的矩阵放入target_network计算maxQ
+						auto q = torch::max(target_network->forward(buf_key[0].target.slice(0, 1, 16).view({ 5,3 }))); 
+						//取出_target的第一个数据就是0这个位置的reword与maxQ和gma计算td_target
+						auto td_target = (buf_key[0].target[0].view({ 1 }) + (gama * q)).view({ 1,1 }); //rewod + gama * maxQ(st+1,A) 计算TDtarget,gama折扣因子
+						
+						auto y = main_network->forward(buf_key[0].data.view({ 1,3 })); //预测当前Q(st,a)
+
+						auto loss = mse_loss(td_target, y); //使用MES计算LOSS 其实就是计算TDERROR 这里使用的是你的j(w)函数利用自动求导的方式计算梯度
+
+						std::cout << loss << "\n------\n";
+						loss.backward({ torch::ones_like(loss) }, true); //计算梯度
+
+						sgd.step();//更新参数main_network的权重
+
+						if ((update_i % 10) == 0) //每10次迭代输出一次loss
 							sig_loss(update_i, loss.item<double>());
-						if ((update_i % model_num) == 0)
+
+						if ((update_i % model_num) == 0)//每model_num次迭代更新一次target_network
 							target_network->copy_params(*main_network);
 						update_i++;
 					}
 				}
+
 				_environment->update_agent(main_network, *device);
 				sig_show_environment();
 				sig_msg_box(QString::fromLocal8Bit("完成"));

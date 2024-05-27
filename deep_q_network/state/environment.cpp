@@ -184,38 +184,40 @@ replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neur
 
 replay_buf::replay_buf(const std::list<sample>& samples, torch::Device dev_type) :
 	_buf_size{ samples.size() }
-{
-	_target = torch::empty({ (long long)samples.size() , 16 }, dev_type);
-	_feature = torch::empty({ (long long)samples.size() , 3 }, dev_type);
+{//这是在生成replay_buf的时候的代码
+	_target = torch::empty({ (long long)samples.size() , 16 }, dev_type); // 这里的_target用于计算 td_target
+	_feature = torch::empty({ (long long)samples.size() , 3 }, dev_type);  // 这里的_feature用于估计当前时刻的Q(s,a)
 
 	for (int i = 0; auto & sampling : samples) {
 		auto& curr_state_feature_obj = sampling._next_state->get_feature();
 
-		_feature[i][0] = (float)curr_state_feature_obj._x;
-		_feature[i][1] = (float)curr_state_feature_obj._y;
+		_feature[i][0] = (float)curr_state_feature_obj._x; //当前时刻的state的X特征
+		_feature[i][1] = (float)curr_state_feature_obj._y; //当前时刻的state的Y特征
 		_feature[i][2] = (float)sampling._curr_action->get_feature();
-		auto& next_state_feature_obj = sampling._next_state->get_feature();
-		//_target[i][0] = sampling->_reword + gama * torch::max(target_network->forward(x));
-		_target[i][0] = sampling._reword;
-		_target[i][1] = (float)next_state_feature_obj._x;
-		_target[i][2] = (float)next_state_feature_obj._y;
-		_target[i][3] = (float)action::feature::up;
 
-		_target[i][4] = (float)next_state_feature_obj._x;
-		_target[i][5] = (float)next_state_feature_obj._y;
-		_target[i][6] = (float)action::feature::right;
+		auto& next_state_feature_obj = sampling._next_state->get_feature();
+		//一下的张量用于在迭代求解时候通过 target_network 计算 TDtarget --在外部每次迭代将{1,16}变形为一个与{5,3}的矩阵传入target_network 
+		//用于计算 计算 r + gama * max(target_network(s,a));
+		_target[i][0] = sampling._reword; //及时奖励
+		_target[i][1] = (float)next_state_feature_obj._x; //下一时刻的stateX特征  对应网格世界的 x index
+		_target[i][2] = (float)next_state_feature_obj._y; //下一时刻的stateY特征	 对应网格世界的 y index
+		_target[i][3] = (float)action::feature::up; //动作特征 1.0
+
+		_target[i][4] = (float)next_state_feature_obj._x; 
+		_target[i][5] = (float)next_state_feature_obj._y; 
+		_target[i][6] = (float)action::feature::right;  //动作特征 2.0
 
 		_target[i][7] = (float)next_state_feature_obj._x;
 		_target[i][8] = (float)next_state_feature_obj._y;
-		_target[i][9] = (float)action::feature::down;
+		_target[i][9] = (float)action::feature::down;//动作特征 3.0
 
 		_target[i][10] = (float)next_state_feature_obj._x;
 		_target[i][11] = (float)next_state_feature_obj._y;
-		_target[i][12] = (float)action::feature::left;
+		_target[i][12] = (float)action::feature::left;//动作特征 4.0
 
 		_target[i][13] = (float)next_state_feature_obj._x;
 		_target[i][14] = (float)next_state_feature_obj._y;
-		_target[i][15] = (float)action::feature::fixed;
+		_target[i][15] = (float)action::feature::fixed;//动作特征 5.0
 
 		++i;
 	}

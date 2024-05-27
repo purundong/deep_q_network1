@@ -1,8 +1,11 @@
 ﻿#include "neural_network.h"
 
 neural_network::neural_network(unsigned int hid_layer_size) :
-	_in_layour{ register_module("_in_layou", torch::nn::Linear(torch::nn::LinearOptions(3,3))) },
+	//_in_layour{ register_module("_in_layou", torch::nn::Linear(torch::nn::LinearOptions(3,3))) },
+	_in_layour{ nullptr },//删除的
+	//隐藏层 三个输入 分别是(状态的x与y,和动作的特征值,输出100个)
 	_hid_layer{ register_module("_hid_layer", torch::nn::Linear(torch::nn::LinearOptions(3, hid_layer_size))) },
+	//输出层hid_layer_size(100)个输入1个输出
 	_out_layer{ register_module("_out_layer", torch::nn::Linear(torch::nn::LinearOptions(hid_layer_size, 1))) }
 {
 }
@@ -13,9 +16,9 @@ neural_network::~neural_network()
 
 torch::Tensor neural_network::forward(torch::Tensor x)
 {
-	x = torch::nn::functional::relu(_in_layour->forward(x));
+	//x = torch::nn::functional::relu(_in_layour->forward(x));
 	//x = _in_layour->forward(x);
-	x = torch::nn::functional::relu(_hid_layer->forward(x));
+	x = torch::nn::functional::relu(_hid_layer->forward(x));//relu作为隐藏层的激活函数
 	return _out_layer->forward(x);
 }
 
