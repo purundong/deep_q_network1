@@ -191,18 +191,18 @@ void deep_q_network::on_pushButton_dqn_clicked()
 					for (auto& buf_key : *replay_buf_obj) {
 						boost::this_thread::interruption_point();
 						sgd.zero_grad();
-						//std::cout << buf_key[0].target<<"\n------\n";
-						//std::cout << buf_key[0].target[0] << "\n-------\n";
-						auto target_x = target_network->forward(buf_key[0].target.slice(0, 1, 16).view({ 5,3 }));
-						//std::cout << target_x << "\n-------\n";
-						auto td_target = (buf_key[0].target[0].view({ 1 }) + gama * torch::max(target_x));
-						//auto y = main_network->forward(buf_key[0].data);
-						//std::cout << target<<"\n------\n" << y;
-						auto loss = mse_loss(td_target, main_network->forward(buf_key[0].data));
+						auto ss1 = buf_key[0].target.slice(0, 1, 16).view({ 5,3 });
+						auto q = target_network->forward(buf_key[0].target.slice(0, 1, 16).view({ 5,3 })); //计算Q(st+1,A)
+						auto td_target = (buf_key[0].target[0].view({ 1 }) + gama * torch::max(q)).view({ 1,1 }); //rewod + gama * maxQ(st+1,A)
+						auto y = main_network->forward(buf_key[0].data.view({ 1,3 }));
+						auto loss = mse_loss(td_target, y);
 						loss.backward({ torch::ones_like(loss) }, true);
 						sgd.step();
-						if (update_i++ % 10)
+						if ((update_i % 10) == 0)
 							sig_loss(update_i, loss.item<double>());
+						if ((update_i % model_num) == 0)
+							target_network->copy_params(*main_network);
+						update_i++;
 					}
 				}
 				_environment->update_agent(main_network, *device);
@@ -222,7 +222,7 @@ void deep_q_network::on_pushButton_dqn_clicked()
 				sig_msg_box(QString::fromStdString(e.msg()));
 			}
 			_thr = nullptr;
-	};
+		};
 
 	_thr = std::make_unique<boost::thread>(fun, device, neural_num, learning_rate, gama, error, step_count, model_num, replay_num);
 }
@@ -265,7 +265,7 @@ void deep_q_network::on_pushButton_qlearning_clicked()
 			_environment->update_state_policy_value();
 			sig_show_environment();
 			sig_msg_box(QString::fromLocal8Bit("完成"));
-	};
+		};
 	_thr = std::make_unique<boost::thread>(fun, nullptr, neural_num, learning_rate, gama, error, step_count, model_num, replay_num);
 }
 
