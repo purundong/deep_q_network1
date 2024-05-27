@@ -5,43 +5,43 @@
 environment::environment(int row_size, int col_size, int trap, int target) :
 	_map_state{ std::make_shared<map_state>() }
 {
-	for (int r = 0; r < row_size; ++r)
-		for (int c = 0; c < col_size; ++c) {
+	for (int r = 1; r <= row_size; ++r)
+		for (int c = 1; c <= col_size; ++c) {
 			auto s = std::make_shared<state>(state_feature{ r, c });
 			s->set_reward(0.0, 1.0);
 			_map_state->emplace(s->get_name(), s);
 		}
 
 	auto factory = std::make_unique<map_action_factory>();
-	for (int r = 1; r < row_size - 1; ++r)
-		for (int c = 1; c < col_size - 1; ++c) {
+	for (int r = 2; r <= row_size - 1; ++r)
+		for (int c = 2; c < col_size - 1; ++c) {
 			if (auto key = _map_state->find(state_feature::get_name(r, c)); key != _map_state->end())
 				key->second->set_map_action(factory->create_map_action(*_map_state, r, c));
 		}
 
 	factory = std::make_unique<map_action_top_factory>();
-	for (int c = 1; c < col_size - 1; ++c)
+	for (int c = 1; c <= col_size - 1; ++c)
 	{	//第一行
 		if (auto key = _map_state->find(state_feature::get_name(0, c)); key != _map_state->end())
 			key->second->set_map_action(factory->create_map_action(*_map_state, 0, c));
 	}
 
 	factory = std::make_unique<map_action_bot_factory>();
-	for (int c = 1; c < col_size - 1; ++c)
+	for (int c = 2; c <= col_size - 1; ++c)
 	{	//最后一行
 		if (auto key = _map_state->find(state_feature::get_name(row_size - 1, c)); key != _map_state->end())
 			key->second->set_map_action(factory->create_map_action(*_map_state, row_size - 1, c));
 	}
 
 	factory = std::make_unique<map_action_left_factory>();
-	for (int r = 1; r < row_size - 1; ++r)
+	for (int r = 2; r <= row_size - 1; ++r)
 	{//第一列
 		if (auto key = _map_state->find(state_feature::get_name(r, 0)); key != _map_state->end())
 			key->second->set_map_action(factory->create_map_action(*_map_state, r, 0));
 	}
 
 	factory = std::make_unique<map_action_right_factory>();
-	for (int r = 1; r < row_size - 1; ++r)
+	for (int r = 2; r <= row_size - 1; ++r)
 	{//最后一列
 		if (auto key = _map_state->find(state_feature::get_name(r, col_size - 1)); key != _map_state->end())
 			key->second->set_map_action(factory->create_map_action(*_map_state, r, col_size - 1));
@@ -49,31 +49,31 @@ environment::environment(int row_size, int col_size, int trap, int target) :
 
 	factory = std::make_unique<map_action_upper_left_factory>();
 
-	if (auto key = _map_state->find(state_feature::get_name(0, 0)); key != _map_state->end())
-		key->second->set_map_action(factory->create_map_action(*_map_state, 0, 0));
+	if (auto key = _map_state->find(state_feature::get_name(1, 1)); key != _map_state->end())
+		key->second->set_map_action(factory->create_map_action(*_map_state, 1, 1));
 
 	factory = std::make_unique<map_action_lower_left_factory>();
 
-	if (auto key = _map_state->find(state_feature::get_name(row_size - 1, 0)); key != _map_state->end())
-		key->second->set_map_action(factory->create_map_action(*_map_state, row_size - 1, 0));
+	if (auto key = _map_state->find(state_feature::get_name(row_size, 1)); key != _map_state->end())
+		key->second->set_map_action(factory->create_map_action(*_map_state, row_size, 1));
 
 	factory = std::make_unique<map_action_upper_right_factory>();
 
-	if (auto key = _map_state->find(state_feature::get_name(0, col_size - 1)); key != _map_state->end())
-		key->second->set_map_action(factory->create_map_action(*_map_state, 0, col_size - 1));
+	if (auto key = _map_state->find(state_feature::get_name(1, col_size)); key != _map_state->end())
+		key->second->set_map_action(factory->create_map_action(*_map_state, 1, col_size));
 
 	factory = std::make_unique<map_action_lower_right_factory>();
 
-	if (auto key = _map_state->find(state_feature::get_name(row_size - 1, col_size - 1)); key != _map_state->end())
-		key->second->set_map_action(factory->create_map_action(*_map_state, row_size - 1, col_size - 1));
+	if (auto key = _map_state->find(state_feature::get_name(row_size, col_size)); key != _map_state->end())
+		key->second->set_map_action(factory->create_map_action(*_map_state, row_size, col_size));
 
 	random_process rand;
 	std::unordered_set<std::string> num_set;
 	for (int i = 0; i < trap; ++i) {
 		while (true)
 		{
-			int row = rand.get_rand(row_size);
-			int col = rand.get_rand(col_size);
+			int row = rand.get_rand(row_size) + 1;
+			int col = rand.get_rand(col_size) + 1;
 			auto name = state_feature::get_name(row, col);
 			if (num_set.find(name) == num_set.end())
 			{
@@ -88,8 +88,8 @@ environment::environment(int row_size, int col_size, int trap, int target) :
 	for (int i = 0; i < target; ++i) {
 		while (true)
 		{
-			int row = rand.get_rand(row_size);
-			int col = rand.get_rand(col_size);
+			int row = rand.get_rand(row_size) + 1;
+			int col = rand.get_rand(col_size) + 1;
 			auto name = state_feature::get_name(row, col);
 			if (num_set.find(name) == num_set.end())
 			{
@@ -121,7 +121,7 @@ void environment::update_agent(neural_network_ptr network, torch::Device dev_typ
 {
 	for (auto& [state_name, state_obj] : *_map_state) {
 		for (auto& [action_name, action_obj] : *state_obj->get_actions()) {
-			auto state_feature_obj = state_obj->get_feature();
+			auto& state_feature_obj = state_obj->get_feature();
 			auto feature = torch::empty({ 1 , 3 }, dev_type);
 			feature[0][0] = (float)state_feature_obj._x;
 			feature[0][1] = (float)state_feature_obj._y;
@@ -182,8 +182,8 @@ replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neur
 	}
 }
 
-replay_buf::replay_buf(const std::list<sample>& samples, torch::Device dev_type):
-	_buf_size{ samples.size()}
+replay_buf::replay_buf(const std::list<sample>& samples, torch::Device dev_type) :
+	_buf_size{ samples.size() }
 {
 	_target = torch::empty({ (long long)samples.size() , 16 }, dev_type);
 	_feature = torch::empty({ (long long)samples.size() , 3 }, dev_type);

@@ -63,7 +63,7 @@ void deep_q_network::show_environment()
 	for (auto& s_key : *map_state_obj) {
 		auto& fat = s_key.second->get_feature();
 		auto* s_ui = new ui_state(s_key.second);
-		ui.tableWidget->setCellWidget(fat._x, fat._y, s_ui);
+		ui.tableWidget->setCellWidget(fat._x - 1, fat._y - 1, s_ui);
 		s_ui->show_state();
 	}
 }
@@ -195,7 +195,7 @@ void deep_q_network::on_pushButton_dqn_clicked()
 						//std::cout << buf_key[0].target[0] << "\n-------\n";
 						auto target_x = target_network->forward(buf_key[0].target.slice(0, 1, 16).view({ 5,3 }));
 						//std::cout << target_x << "\n-------\n";
-						auto td_target = (buf_key[0].target[0].view({1}) + gama * torch::max(target_x));
+						auto td_target = (buf_key[0].target[0].view({ 1 }) + gama * torch::max(target_x));
 						//auto y = main_network->forward(buf_key[0].data);
 						//std::cout << target<<"\n------\n" << y;
 						auto loss = mse_loss(td_target, main_network->forward(buf_key[0].data));
