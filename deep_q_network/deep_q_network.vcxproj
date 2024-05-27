@@ -71,6 +71,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>D:\libtorch_gpu\release\lib\*.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/INCLUDE:"?ignore_this_library_placeholder@@YAHXZ" %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

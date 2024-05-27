@@ -365,9 +365,16 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_solve">
+            <widget class="QPushButton" name="pushButton_dqn">
              <property name="text">
-              <string>求解</string>
+              <string>DQN</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_qlearning">
+             <property name="text">
+              <string>Qlearning</string>
              </property>
             </widget>
            </item>

@@ -31,7 +31,8 @@ public slots:
 	void menu_set_transfers();
 	void menu_state_info();
 	void on_pushButton_make_state_clicked();
-	void on_pushButton_solve_clicked();
+	void on_pushButton_dqn_clicked();
+	void on_pushButton_qlearning_clicked();
 	void on_horizontalSlider_valueChanged(int value);
 	void on_tableWidget_customContextMenuRequested(QPoint point);
 private:

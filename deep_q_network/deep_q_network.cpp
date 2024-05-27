@@ -6,7 +6,7 @@
 
 deep_q_network::deep_q_network(QWidget* parent)
 	: QWidget(parent),
-	_plot{std::make_unique<QCustomPlot>()}
+	_plot{ std::make_unique<QCustomPlot>() }
 {
 	ui.setupUi(this);
 	QHBoxLayout* layout = new QHBoxLayout;
@@ -14,8 +14,8 @@ deep_q_network::deep_q_network(QWidget* parent)
 	ui.widget_loss->setLayout(layout);
 	layout->addWidget(_plot.get());
 	_plot->setContentsMargins(0, 0, 0, 0);
-	
-	connect(this, SIGNAL(sig_loss(double,double)), this, SLOT(sot_loss(double, double)), Qt::QueuedConnection);
+
+	connect(this, SIGNAL(sig_loss(double, double)), this, SLOT(sot_loss(double, double)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_msg_box(QString)), this, SLOT(sot_msg_box(QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_init(double, double, double, double)), this, SLOT(sot_init(double, double, double, double)), Qt::BlockingQueuedConnection);
 	connect(this, SIGNAL(sig_show_environment()), this, SLOT(sot_show_environment()), Qt::QueuedConnection);
@@ -121,7 +121,7 @@ void deep_q_network::on_pushButton_make_state_clicked()
 	show_environment();
 }
 
-void deep_q_network::on_pushButton_solve_clicked()
+void deep_q_network::on_pushButton_dqn_clicked()
 {
 	if (_thr != nullptr) {
 		_thr->interrupt();
@@ -171,19 +171,38 @@ void deep_q_network::on_pushButton_solve_clicked()
 				auto trajectory_obj = _environment->sampling(step_count);
 				unsigned int update_i = 1;
 				for (int i = 0; i < replay_num; ++i) {
-					for (int step_i = 0; step_i < step_count;) {
-						auto replay_buf_obj = trajectory_obj->get_random_replay_buf(target_network, model_num, gama, *device);
-						for (auto& buf_key : *replay_buf_obj) {
-							boost::this_thread::interruption_point();
-							sgd.zero_grad();
-							auto loss = mse_loss(buf_key[0].target, main_network->forward(buf_key[0].data));
-							loss.backward({ torch::ones_like(loss) }, true);
-							sgd.step();
-							if (update_i++ % 10)
-								sig_loss(update_i, loss.item<double>());
-						}
-						step_i += model_num - 1;
-						target_network->copy_params(*main_network);
+					//for (int step_i = 0; step_i < step_count;) {
+
+					//	auto replay_buf_obj = trajectory_obj->get_random_replay_buf(target_network, model_num, gama, *device);
+					//	for (auto& buf_key : *replay_buf_obj) {
+					//		boost::this_thread::interruption_point();
+					//		sgd.zero_grad();
+					//		auto loss = mse_loss(buf_key[0].target, main_network->forward(buf_key[0].data));
+					//		loss.backward({ torch::ones_like(loss) }, true);
+					//		sgd.step();
+					//		if (update_i++ % 10)
+					//			sig_loss(update_i, loss.item<double>());
+					//	}
+					//	step_i += model_num - 1;
+					//	target_network->copy_params(*main_network);
+					//}
+					auto replay_buf_obj = trajectory_obj->get_random_replay_buf(*device);
+
+					for (auto& buf_key : *replay_buf_obj) {
+						boost::this_thread::interruption_point();
+						sgd.zero_grad();
+						//std::cout << buf_key[0].target<<"\n------\n";
+						//std::cout << buf_key[0].target[0] << "\n-------\n";
+						auto target_x = target_network->forward(buf_key[0].target.slice(0, 1, 16).view({ 5,3 }));
+						//std::cout << target_x << "\n-------\n";
+						auto td_target = (buf_key[0].target[0].view({1}) + gama * torch::max(target_x));
+						//auto y = main_network->forward(buf_key[0].data);
+						//std::cout << target<<"\n------\n" << y;
+						auto loss = mse_loss(td_target, main_network->forward(buf_key[0].data));
+						loss.backward({ torch::ones_like(loss) }, true);
+						sgd.step();
+						if (update_i++ % 10)
+							sig_loss(update_i, loss.item<double>());
 					}
 				}
 				_environment->update_agent(main_network, *device);
@@ -199,17 +218,60 @@ void deep_q_network::on_pushButton_solve_clicked()
 			}
 			catch (const at::Error& e)
 			{
+				auto a = e.what();
 				sig_msg_box(QString::fromStdString(e.msg()));
 			}
 			_thr = nullptr;
-		};
+	};
 
 	_thr = std::make_unique<boost::thread>(fun, device, neural_num, learning_rate, gama, error, step_count, model_num, replay_num);
 }
 
+void deep_q_network::on_pushButton_qlearning_clicked()
+{
+	if (_thr != nullptr) {
+		_thr->interrupt();
+		if (_thr->joinable())
+			_thr->join();
+		_thr = nullptr;
+		return;
+	}
+
+	if (_environment == nullptr || _environment->empty()) {
+		sig_msg_box(QString::fromLocal8Bit("没有状态"));
+		return;
+	}
+
+	auto neural_num = ui.spinBox_neural_num->value();
+	auto learning_rate = ui.doubleSpinBox_learning_rate->value();
+	auto gama = ui.doubleSpinBox_gama->value();
+	auto error = ui.doubleSpinBox_error->value();
+	auto step_count = ui.spinBox_step_count->value();
+	auto model_num = ui.spinBox_model_num->value();
+	auto replay_num = ui.spinBox_replay_num->value();
+
+	auto fun = [&](std::shared_ptr<torch::Device> device, unsigned int neural_num, float learning_rate, float gama,
+		float error, size_t step_count, size_t model_num, int replay_num) {
+			auto trajectory_obj = _environment->sampling(step_count);
+			for (int i = 0; i < replay_num; ++i) {
+				auto& samples = trajectory_obj->get_samples();
+				for (auto begin = samples.begin(); begin != samples.end(); ++begin) {
+					double td_target = begin->_reword + gama * begin->_next_state->max_max_action_value();
+					auto td_error = begin->_curr_action->value() - td_target;
+					auto a_value = begin->_curr_action->value() - 0.005 * (td_error);
+					begin->_curr_action->set_value(a_value);
+				}
+			}
+			_environment->update_state_policy_value();
+			sig_show_environment();
+			sig_msg_box(QString::fromLocal8Bit("完成"));
+	};
+	_thr = std::make_unique<boost::thread>(fun, nullptr, neural_num, learning_rate, gama, error, step_count, model_num, replay_num);
+}
+
 void deep_q_network::sot_loss(double x, double y)
 {
-	auto* graph =_plot->graph(0);
+	auto* graph = _plot->graph(0);
 	graph->addData(x, y);
 	_plot->replot();
 	_plot->show();

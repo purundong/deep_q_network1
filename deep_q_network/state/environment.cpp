@@ -2,8 +2,8 @@
 #include "map_action_factory.h"
 #include "random_process.h"
 
-environment::environment(int row_size, int col_size, int trap, int target):
-	_map_state{std::make_shared<map_state>()}
+environment::environment(int row_size, int col_size, int trap, int target) :
+	_map_state{ std::make_shared<map_state>() }
 {
 	for (int r = 0; r < row_size; ++r)
 		for (int c = 0; c < col_size; ++c) {
@@ -134,8 +134,16 @@ void environment::update_agent(neural_network_ptr network, torch::Device dev_typ
 	}
 }
 
-replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neural_network_ptr target_network, float gama, torch::Device dev_type):
-	_buf_size{ batch.size()}
+void environment::update_state_policy_value()
+{
+	for (auto& [state_name, state_obj] : *_map_state) {
+		state_obj->update_policy_greedy();
+		state_obj->update_value();
+	}
+}
+
+replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neural_network_ptr target_network, float gama, torch::Device dev_type) :
+	_buf_size{ batch.size() }
 {
 	_target = torch::empty({ (long long)batch.size() , 1 }, dev_type);
 	_feature = torch::empty({ (long long)batch.size() , 3 }, dev_type);
@@ -155,7 +163,7 @@ replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neur
 
 		x[1][0] = (float)next_state_feature_obj._x;
 		x[1][1] = (float)next_state_feature_obj._y;
-		x[1][2] = (float)action::feature::left;
+		x[1][2] = (float)action::feature::right;
 
 		x[2][0] = (float)next_state_feature_obj._x;
 		x[2][1] = (float)next_state_feature_obj._y;
@@ -163,7 +171,7 @@ replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neur
 
 		x[3][0] = (float)next_state_feature_obj._x;
 		x[3][1] = (float)next_state_feature_obj._y;
-		x[3][2] = (float)action::feature::right;
+		x[3][2] = (float)action::feature::left;
 
 		x[4][0] = (float)next_state_feature_obj._x;
 		x[4][1] = (float)next_state_feature_obj._y;
@@ -172,6 +180,46 @@ replay_buf::replay_buf(const std::list<std::list<sample>::iterator>& batch, neur
 		_target[i][0] = sampling->_reword + gama * torch::max(target_network->forward(x));
 		++i;
 	}
+}
+
+replay_buf::replay_buf(const std::list<sample>& samples, torch::Device dev_type):
+	_buf_size{ samples.size()}
+{
+	_target = torch::empty({ (long long)samples.size() , 16 }, dev_type);
+	_feature = torch::empty({ (long long)samples.size() , 3 }, dev_type);
+
+	for (int i = 0; auto & sampling : samples) {
+		auto& curr_state_feature_obj = sampling._next_state->get_feature();
+
+		_feature[i][0] = (float)curr_state_feature_obj._x;
+		_feature[i][1] = (float)curr_state_feature_obj._y;
+		_feature[i][2] = (float)sampling._curr_action->get_feature();
+		auto& next_state_feature_obj = sampling._next_state->get_feature();
+		//_target[i][0] = sampling->_reword + gama * torch::max(target_network->forward(x));
+		_target[i][0] = sampling._reword;
+		_target[i][1] = (float)next_state_feature_obj._x;
+		_target[i][2] = (float)next_state_feature_obj._y;
+		_target[i][3] = (float)action::feature::up;
+
+		_target[i][4] = (float)next_state_feature_obj._x;
+		_target[i][5] = (float)next_state_feature_obj._y;
+		_target[i][6] = (float)action::feature::right;
+
+		_target[i][7] = (float)next_state_feature_obj._x;
+		_target[i][8] = (float)next_state_feature_obj._y;
+		_target[i][9] = (float)action::feature::down;
+
+		_target[i][10] = (float)next_state_feature_obj._x;
+		_target[i][11] = (float)next_state_feature_obj._y;
+		_target[i][12] = (float)action::feature::left;
+
+		_target[i][13] = (float)next_state_feature_obj._x;
+		_target[i][14] = (float)next_state_feature_obj._y;
+		_target[i][15] = (float)action::feature::fixed;
+
+		++i;
+	}
+
 }
 
 torch::data::Example<> replay_buf::get(size_t index)
@@ -204,6 +252,11 @@ std::unique_ptr<torch::data::StatelessDataLoader<replay_buf, torch::data::sample
 			_iter = _samples.begin();
 	}
 	return torch::data::make_data_loader<torch::data::samplers::RandomSampler>(replay_buf(batch, target_network, gama, dev_type), 1);
+}
+
+std::unique_ptr<torch::data::StatelessDataLoader<replay_buf, torch::data::samplers::RandomSampler>> trajectory::get_random_replay_buf(torch::Device dev_type)
+{
+	return torch::data::make_data_loader<torch::data::samplers::RandomSampler>(replay_buf(_samples, dev_type), 1);
 }
 
 void trajectory::push_sample(sample&& sample_obj)

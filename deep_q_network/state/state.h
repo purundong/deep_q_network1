@@ -50,6 +50,7 @@ public:
 	reward sample_reword(); //采样一个奖励
 	void update_policy_greedy();
 	void update_value();
+	double max_max_action_value();
 public:
 	state(const state_feature& feature);
 	state(state_feature&& feature);

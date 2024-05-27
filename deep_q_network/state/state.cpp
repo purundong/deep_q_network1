@@ -53,6 +53,13 @@ void state::update_value()
 	}
 }
 
+double state::max_max_action_value()
+{
+	auto fun = [](const auto& a, const auto& b) {return a.second->value() < b.second->value(); };
+	auto max = std::max_element(_map_action->begin(), _map_action->end(), fun);
+	return max->second->value();
+}
+
 state::state(const state_feature& feature) :
 	_feature{ feature },
 	_policy({ {action::feature::up, 0.25},
