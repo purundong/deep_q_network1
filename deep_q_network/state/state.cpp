@@ -7,6 +7,7 @@
 #include "ui_reword.h"
 #include "ui_state_transfers.h"
 #include "ui_state_info.h"
+#include <iostream>
 
 double state::reward_expectations()
 {
@@ -20,8 +21,14 @@ action_ptr state::sample_action()
 	std::vector<double> probability_vec(_policy.size());
 	auto fun = [](const std::pair<const action::action::feature, double>& pa) { return pa.second; };
 	std::transform(_policy.begin(), _policy.end(), probability_vec.begin(), fun);
+	
 	auto a = (action::action::feature)(random_process::sampling(probability_vec) + 1);
-	return (*_map_action)[a];
+	if (_map_action == nullptr) {
+		std::cout << get_name() << "\n";
+		this;
+	}
+	auto& action = (*_map_action)[a];
+	return action;
 }
 
 reward state::sample_reword()

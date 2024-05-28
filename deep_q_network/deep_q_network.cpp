@@ -63,7 +63,7 @@ void deep_q_network::show_environment()
 	for (auto& s_key : *map_state_obj) {
 		auto& fat = s_key.second->get_feature();
 		auto* s_ui = new ui_state(s_key.second);
-		ui.tableWidget->setCellWidget(fat._x - 1, fat._y - 1, s_ui);
+		ui.tableWidget->setCellWidget(fat._x, fat._y, s_ui);
 		s_ui->show_state();
 	}
 }
@@ -178,21 +178,22 @@ void deep_q_network::on_pushButton_dqn_clicked()
 
 						boost::this_thread::interruption_point();
 
-						sgd.zero_grad(); //清空神经网络梯度
-						//计算maxQ(st+1,a)就是先前的replay_buf里的_target这里取出第1到15的数据转换成5*3的矩阵放入target_network计算maxQ
+
+						bool is = torch::equal(buf_key[0].target.slice(0, 1, 3).view({ 1,2 }), buf_key[0].data.view({ 1,3 }).slice(1, 0, 2));
+
 						auto q = torch::max(target_network->forward(buf_key[0].target.slice(0, 1, 16).view({ 5,3 }))); 
-						//取出_target的第一个数据就是0这个位置的reword与maxQ和gma计算td_target
-						auto td_target = (buf_key[0].target[0].view({ 1 }) + (gama * q)).view({ 1,1 }); //rewod + gama * maxQ(st+1,A) 计算TDtarget,gama折扣因子
+						auto td_target = (buf_key[0].target[0].view({ 1, 1 }) + (gama * q)).view({ 1,1 });
 						
 						auto y = main_network->forward(buf_key[0].data.view({ 1,3 })); //预测当前Q(st,a)
 
 						auto loss = mse_loss(td_target, y); //使用MES计算LOSS 其实就是计算TDERROR 这里使用的是你的j(w)函数利用自动求导的方式计算梯度
 
-						std::cout << loss << "\n------\n";
+
+						sgd.zero_grad(); //清空神经网络梯度
+
 						loss.backward({ torch::ones_like(loss) }, true); //计算梯度
 
 						sgd.step();//更新参数main_network的权重
-
 						if ((update_i % 10) == 0) //每10次迭代输出一次loss
 							sig_loss(update_i, loss.item<double>());
 
@@ -201,7 +202,6 @@ void deep_q_network::on_pushButton_dqn_clicked()
 						update_i++;
 					}
 				}
-
 				_environment->update_agent(main_network, *device);
 				sig_show_environment();
 				sig_msg_box(QString::fromLocal8Bit("完成"));

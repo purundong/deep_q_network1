@@ -11,6 +11,7 @@ public:
 public:
 	torch::Tensor forward(torch::Tensor x);
 	void show();
+	void show_grad();
 	void copy_params(const neural_network& network);
 };
 using neural_network_ptr = std::shared_ptr<neural_network>;
