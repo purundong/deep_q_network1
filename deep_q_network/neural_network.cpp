@@ -8,6 +8,8 @@ neural_network::neural_network(unsigned int hid_layer_size) :
 	//输出层hid_layer_size(100)个输入1个输出
 	_out_layer{ register_module("_out_layer", torch::nn::Linear(torch::nn::LinearOptions(hid_layer_size, 1))) }
 {
+	torch::nn::init::kaiming_uniform_(_hid_layer->weight,5.0);
+	torch::nn::init::kaiming_uniform_(_out_layer->weight,5.0);
 }
 
 neural_network::~neural_network()
